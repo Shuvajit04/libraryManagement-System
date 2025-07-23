@@ -1,0 +1,182 @@
+🛑Frontend
+✅ 1. index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Library Management System</title>
+  <style>
+    body {
+      background: #f2f2f2;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 50px;
+    }
+
+    .container {
+      background: #fff;
+      padding: 30px;
+      width: 350px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ccc;
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+
+    input[type="text"], input[type="password"], input[type="email"] {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background: #45a049;
+    }
+
+    .switch {
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .switch a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    .switch a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container" id="loginForm">
+    <h2>Library Login</h2>
+    <form action="login.php" method="post">
+      <input type="text" name="username" placeholder="Enter Username" required />
+      <input type="password" name="password" placeholder="Enter Password" required />
+      <button type="submit">Login</button>
+    </form>
+    <div class="switch">Don't have an account? <a href="register.html">Register</a></div>
+  </div>
+
+</body>
+</html>
+✅  Registration Page
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Register</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="container">
+    <h2>Register</h2>
+    <form action="register.php" method="post">
+      <input type="text" name="username" placeholder="Username" required />
+      <input type="email" name="email" placeholder="Email" required />
+      <input type="password" name="password" placeholder="Password" required />
+      <button type="submit">Register</button>
+    </form>
+    <div class="switch">Already have an account? <a href="index.html">Login</a></div>
+  </div>
+
+</body>
+</html>
+
+✅ MySQL Connection File
+<?php
+$host = "localhost";
+$user = "root";
+$pass = "";
+$db = "library_system";
+
+$conn = new mysqli($host, $user, $pass, $db);
+
+if ($conn->connect_error) {
+  die("Connection failed: " . $conn->connect_error);
+}
+?>
+
+✅ Handle Registration
+<?php
+include "db.php";
+
+$username = $_POST['username'];
+$email = $_POST['email'];
+$password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+
+$sql = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("sss", $username, $email, $password);
+
+if ($stmt->execute()) {
+  echo "Registration successful. <a href='index.html'>Login here</a>.";
+} else {
+  echo "Error: " . $stmt->error;
+}
+
+$stmt->close();
+$conn->close();
+?>
+✅ 5. login.php – Handle Login
+php
+Copy
+Edit
+<?php
+include "db.php";
+
+$username = $_POST['username'];
+$password = $_POST['password'];
+
+$sql = "SELECT * FROM users WHERE username=?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("s", $username);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($user = $result->fetch_assoc()) {
+  if (password_verify($password, $user['password'])) {
+    echo "Login successful. Welcome, " . $user['username'] . "!";
+  } else {
+    echo "Invalid password.";
+  }
+} else {
+  echo "No such user found.";
+}
+
+$stmt->close();
+$conn->close();
+?>
+
+✅ 6. MySQL Table Setup
+CREATE DATABASE library_system;
+
+USE library_system;
+
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  email VARCHAR(100),
+  password VARCHAR(255) NOT NULL
+);
